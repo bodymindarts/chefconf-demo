@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  redis:
+    image: starkandwayne/redis:edge
+    volumes:
+    - backups-volume:/backups
+    ports:
+    - 6379:6379
+    command: "start starkandwayne/redis --peer shield --bind shield:shield.default"
+    environment:
+      HAB_REDIS: |
+        bootstrap_from_backup=true
+        backups_schedule='daily'
+        backups_retention='shortterm'
+        backups_store='local'
+    links:
+    - shield
+  shield:
+    ports:
+    - 443:443
+    image: starkandwayne/shield
+    command: "start starkandwayne/shield --peer database --bind database:postgresql.shield"
+    links:
+    - database
+    - agent
+  agent: # to autoprovision the dependant entities
+    image: starkandwayne/shield-agent
+    command: "start starkandwayne/shield-agent --bind daemon:shield.default --peer database"
+    environment:
+      HAB_SHIELD_AGENT: |
+        [[stores]]
+        name='local'
+        plugin='fs'
+        [stores.config]
+        base_dir='/backups'
+        [schedules]
+        daily='daily 4am'
+        [retention-policies]
+        shortterm='86400'
+    links:
+      - database
+  database:
+    image: starkandwayne/postgresql
+    command: "start starkandwayne/postgresql --group shield"
+
+volumes:
+  backups-volume: {}
+
