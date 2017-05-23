@@ -2,7 +2,7 @@ version: '3'
 
 services:
   redis:
-    image: starkandwayne/redis:edge
+    image: starkandwayne/redis
     volumes:
     - backups-volume:/backups
     ports:
@@ -24,6 +24,9 @@ services:
     links:
     - database
     - agent
+  database:
+    image: starkandwayne/postgresql
+    command: "start starkandwayne/postgresql --group shield"
   agent: # to autoprovision the dependant entities
     image: starkandwayne/shield-agent
     command: "start starkandwayne/shield-agent --bind daemon:shield.default --peer database"
@@ -35,14 +38,11 @@ services:
         [stores.config]
         base_dir='/backups'
         [schedules]
-        daily='daily 4am'
+        daily='daily 5am'
         [retention-policies]
         shortterm='86400'
     links:
       - database
-  database:
-    image: starkandwayne/postgresql
-    command: "start starkandwayne/postgresql --group shield"
 
 volumes:
   backups-volume: {}
