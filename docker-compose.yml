@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  standalone:
+    image: starkandwayne/postgresql
+    command: "start starkandwayne/postgresql"
+  pg1:
+    image: starkandwayne/postgresql
+    command: "start starkandwayne/postgresql --group cluster --peer standalone --topology leader"
+    links:
+    - standalone
+  pg2:
+    image: starkandwayne/postgresql
+    command: "start starkandwayne/postgresql --group cluster --peer standalone --topology leader"
+    links:
+    - standalone
+  pg3:
+    image: starkandwayne/postgresql
+    command: "start starkandwayne/postgresql --group cluster --peer standalone --topology leader"
+    links:
+    - standalone
+  client:
+    image: starkandwayne/postgresql
+    entrypoint: []
+    command: "/bin/bash"
